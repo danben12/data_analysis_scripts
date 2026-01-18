@@ -1,0 +1,53 @@
+# μ-SPLASH Data Stitcher 2.0
+# Script Name: stitcher 2.0.py
+# Author: Dan
+# Lab: Nadav Kashtan Lab, Faculty of Agriculture
+# Last Updated: January 2026
+
+================================================================================
+1. OVERVIEW
+================================================================================
+This script acts as the "Data Fusion" step in the pipeline. It merges two
+distinct raw datasets:
+1. Droplet Data (Physical properties: Area, Centroid X/Y).
+2. Bacterial Count Data (Time-series counts from specific chips).
+
+The script outputs a single "Merged" CSV file that contains both the physical
+dimensions (Volume) and biological data (Bacteria Count) for every droplet.
+
+================================================================================
+2. KEY OPERATIONS
+================================================================================
+1. **Merging:** It performs a Left Join on `Droplet` (from counts) and `Label` (from droplet data).
+
+2. **Volume Calculation (Geometric Model):**
+   - The microscope provides 2D Area ($A$) in $\mu m^2$.
+   - The script converts this to 3D Volume ($V$) assuming a **Sessile Drop Model**.
+   - **Parameter:** Contact Angle ($\theta$) = 32°.
+   - Formula used:
+     $$ V = \frac{\pi D^3}{24} \times \frac{(2 - 3\cos\theta + \cos^3\theta)}{\sin^3\theta} $$
+     Where $D = 2\sqrt{A/\pi}$ (Diameter).
+
+3. **Spatial Indexing:**
+   - Calculates distance from the physical center of the chip ($13200 \times 13200$).
+   - Creates a boolean flag `is_inside_circle` to filter edge artifacts.
+
+4. **Binning:**
+   - Creates Log-Volume bins (e.g., "3-4", "4-5") for grouping droplets by size.
+
+================================================================================
+3. INPUT / OUTPUT
+================================================================================
+**Inputs:**
+- Droplet CSV: `...\{chip} final data.csv`
+- Counts CSV: `...bacteria_counts_{chip}.csv`
+
+**Output:**
+- `merged_bacteria_counts_C1.csv`
+- This file is the primary input required for `main.py`.
+
+================================================================================
+4. CONFIGURATION
+================================================================================
+- To add more chips, update the `chips=['C1']` list at the top.
+- Ensure the file paths in `pd.read_csv` and `to_csv` match your current folder structure.

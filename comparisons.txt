@@ -1,0 +1,64 @@
+# μ-SPLASH Comparative Dashboard
+# Script Name: comparisons.py
+# Author: Dan
+# Lab: Nadav Kashtan Lab, Faculty of Agriculture
+# Last Updated: January 2026
+
+================================================================================
+1. OVERVIEW
+================================================================================
+This script generates a "Side-by-Side" Comparative Dashboard.
+Unlike the main dashboard (which analyzes one chip in depth), this tool allows
+you to compare the same metric across two different chips/experiments simultaneously.
+
+It is particularly useful for comparing:
+- Control vs. Antibiotic Treatment.
+- High Concentration vs. Low Concentration.
+- Start Time vs. End Time.
+
+================================================================================
+2. DEPENDENCIES
+================================================================================
+[!] CRITICAL: This script relies on `main.py`.
+- It imports `main` as a module.
+- Both files must be in the same folder.
+- `main.py` must be fully functional (able to load data and generate plots).
+
+Standard Libraries:
+- bokeh, pandas, numpy (Same as main.py)
+
+================================================================================
+3. HOW IT WORKS
+================================================================================
+1. Data Pre-calculation:
+   The script pre-calculates *every* possible plot for *every* chip found in the
+   input CSV. This ensures the dashboard is responsive and doesn't need to recalculate
+   data when you switch views.
+
+2. Fixed Axis Ranges:
+   To ensure valid visual comparisons, this script forces fixed X and Y axis ranges
+   for all plots. For example, "Fold Change" is always plotted from -10.5 to +10,
+   regardless of the specific data range of a single chip.
+
+3. Triple-Dropdown UI:
+   The dashboard provides three selector widgets:
+   A. Plot Type: Choose the metric (e.g., Growth Curves, Death Rate, Heatmap).
+   B. Chip (Left): Select the first experiment.
+   C. Chip (Right): Select the second experiment.
+
+================================================================================
+4. OUTPUT
+================================================================================
+- `comparisons.html`:
+  A standalone HTML file. Open in Chrome/Edge/Firefox.
+
+================================================================================
+5. TROUBLESHOOTING
+================================================================================
+- "ModuleNotFoundError: No module named 'main'":
+  Ensure `comparisons.py` and `main.py` are in the same directory.
+
+- "Plots look squashed or empty":
+  Since axis ranges are fixed, if your data falls completely outside the expected
+  biological range (e.g., a Fold Change of +50), it might not appear.
+  Check the `y_range` settings in the `dashborde()` function if you need to adjust limits.

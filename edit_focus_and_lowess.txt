@@ -1,0 +1,57 @@
+# μ-SPLASH Data Smoothing Pipeline
+# Script Name: edit_focus_and_lowess.py
+# Author: Dan
+# Lab: Nadav Kashtan Lab, Faculty of Agriculture
+# Last Updated: January 2026
+
+================================================================================
+1. OVERVIEW
+================================================================================
+This script is a post-processing tool for bacterial growth curves.
+Raw microscopy data often contains noise, missing frames (focus loss), or artifacts.
+
+This script cleans the data in three steps:
+1. **Zero-Start Correction:** Detects if a droplet falsely reads "0" at the start
+   due to focus issues, and marks it as missing data.
+2. **Gap Filling:** Fills missing values using "Geometric Mean Interpolation"
+   (log-scale averaging), which is more biologically accurate for exponential growth
+   than simple linear averaging.
+3. **LOWESS Smoothing:** Applies a locally weighted smoothing filter to reduce
+   pixel noise while preserving the true shape of the growth curve.
+
+================================================================================
+2. PREREQUISITES
+================================================================================
+Dependencies:
+$ pip install pandas numpy statsmodels
+
+- `statsmodels`: Provides the LOWESS smoothing algorithm.
+- `concurrent.futures`: Used for parallel processing (speeding up the loops).
+
+================================================================================
+3. INPUT / OUTPUT
+================================================================================
+INPUT:
+- A CSV file containing time-series data.
+- Must have columns: `Well` (or Chip ID), `Droplet`, `Count`.
+
+OUTPUT:
+- A new CSV file (`_filled.csv`) with the 'Count' column updated.
+- The row structure remains the same; only the values are smoothed.
+
+================================================================================
+4. KEY PARAMETERS
+================================================================================
+Inside `process_chip_lowess(chip_df)`:
+- `frac=0.2`: This controls the "strength" of the smoothing.
+  - 0.2 means 20% of the data points are used to smooth each local point.
+  - Increase this (e.g., 0.3) for smoother curves (less detail).
+  - Decrease this (e.g., 0.1) for rougher curves (more detail).
+
+================================================================================
+5. USAGE
+================================================================================
+1. Open the script.
+2. Scroll to the `if __name__ == '__main__':` block at the bottom.
+3. Update `input_csv_path` to point to your raw data.
+4. Run the script. It will print progress for each Chip/Droplet.
