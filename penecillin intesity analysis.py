@@ -13,9 +13,9 @@ from scipy.stats import spearmanr
 
 
 
-droplets_data = pd.read_csv(r"L:\12032025_bocillin 80,60 and 40 uM_tris 50 mM_strain 293\C1\Alexa\best LUT\csv\C1 final data.csv")
-bac_data = pd.read_csv(r"L:\12032025_bocillin 80,60 and 40 uM_tris 50 mM_strain 293\C1\mCherry Final_Intensity_Analysis_Formatted.csv")
-signal_data= pd.read_csv(r"L:\12032025_bocillin 80,60 and 40 uM_tris 50 mM_strain 293\C1\GFP Final_Intensity_Analysis_Formatted.csv")
+droplets_data = pd.read_csv(r"C:\Users\danbe\Desktop\37C investigation\Bocillin FL\C1 final data.csv")
+bac_data = pd.read_csv(r"C:\Users\danbe\Desktop\37C investigation\Bocillin FL\mCherry Final_Intensity_Analysis_Formatted.csv")
+signal_data= pd.read_csv(r"C:\Users\danbe\Desktop\37C investigation\Bocillin FL\GFP Final_Intensity_Analysis_Formatted.csv")
 
 
 
@@ -61,14 +61,16 @@ plt.figure(figsize = (10,6))
 plt.scatter(merged['Volume'], merged['signal intesity'], s=5, alpha=0.5, c='gray')
 window = 1000
 t5_sorted = merged.sort_values('Volume').reset_index(drop=True)
-t5_sorted['signal_MA'] = t5_sorted['signal intesity'].rolling(window=window, min_periods=10).mean()
-plt.plot(t5_sorted['Volume'], t5_sorted['signal_MA'], color='green', linewidth=1,
+t5_sorted['signal_MA'] = t5_sorted['signal intesity'].rolling(window=window, min_periods=25).mean()
+plt.plot(t5_sorted['Volume'], t5_sorted['signal_MA'], color='green', linewidth=3,
          label=f'{window}-point MA (Spearman $\\rho$ = {rho:.2f})')
 plt.xlabel(r'Volume (µm$^3$)', fontsize=18)
 plt.xscale('log')
 plt.ylabel('GFP Intensity per bacterium', fontsize=18)
 plt.ylim(0,1000)
-plt.legend()
+plt.legend(fontsize=12)
+plt.tick_params(axis='both', labelsize=18)
+plt.grid(alpha=0.3)
 plt.show()
 
 
@@ -78,14 +80,16 @@ plt.figure(figsize = (10,6))
 plt.scatter(t5_per_droplet_DAPI['Volume'], t5_per_droplet_DAPI['signal intesity'], s=5, alpha=0.5, c='gray')
 window = 100
 t5_sorted = t5_per_droplet_DAPI.sort_values('Volume').reset_index(drop=True)
-t5_sorted['signal_MA'] = t5_sorted['signal intesity'].rolling(window=window, min_periods=10).mean()
-plt.plot(t5_sorted['Volume'], t5_sorted['signal_MA'], color='green', linewidth=1,
+t5_sorted['signal_MA'] = t5_sorted['signal intesity'].rolling(window=window, min_periods=25).mean()
+plt.plot(t5_sorted['Volume'], t5_sorted['signal_MA'], color='green', linewidth=3,
          label=f'{window}-point MA (Spearman $\\rho$ = {rho:.2f})')
 plt.xlabel(r'Volume (µm$^3$)', fontsize=18)
 plt.xscale('log')
 plt.ylabel('GFP Intensity per droplet', fontsize=18)
 plt.ylim(0,1000)
-plt.legend()
+plt.legend(fontsize=12,loc='upper left')
+plt.tick_params(axis='both', labelsize=16)
+plt.grid(alpha=0.3)
 plt.show()
 
 
@@ -158,6 +162,7 @@ annotator.apply_and_annotate()
 # --- Labels and formatting ---
 plt.xlabel(r'Volume (µm$^3$)', fontsize=18)
 plt.ylabel('Mean antibiotic intensity per bacterium', fontsize=18)
+ax.tick_params(axis='both', labelsize=16)
 sns.despine()
 plt.grid(axis='y', linestyle='--', alpha=0.3)
 
@@ -169,70 +174,91 @@ plt.show()
 # # figure 13 Boxplot plot DAPI intesity per Volume bin per Droplet T=5
 # # -------------------------------------------------------------------------------------
 #
-order = sorted(t5_per_droplet_DAPI['Bins_vol'].unique())
-pairs = list(zip(order[:-1], order[1:]))
-plt.figure(figsize=(10, 6))
+# import matplotlib.pyplot as plt
+# import seaborn as sns
+# import numpy as np
+# from statannotations.Annotator import Annotator
 
-# --- Base boxplot ---
-ax = sns.boxplot(
-    data=t5_per_droplet_DAPI,
-    x='Bins_vol',
-    y='signal intesity',
-    order=order,
-    color='lightgray',
-    width=0.6,
-    linewidth=1.2,
-    fliersize=0,  # hide outliers
-    boxprops=dict(edgecolor='black', linewidth=1.2),
-    whiskerprops=dict(color='black', linewidth=1.2),
-    capprops=dict(color='black', linewidth=1.2),
-    medianprops=dict(color='red', linewidth=2)
-)
+# # --- 1. Bokeh-Style Font Configuration ---
+# plt.rcParams['font.family'] = 'sans-serif'
+# plt.rcParams['font.sans-serif'] = ['Helvetica', 'Arial', 'sans-serif']
+# plt.rcParams['axes.labelweight'] = 'normal' # Bokeh usually uses normal weight
 
-labels = [r'$10^3 - 10^4$', r'$10^4 - 10^5$', r'$10^5 - 10^6$', r'$10^6 - 10^7$', r'$10^7 - 10^8$']
-ax.set_xticklabels(labels)
+# # --- 2. Data Setup ---
+# order = sorted(t5_per_droplet_DAPI['Bins_vol'].unique())
+# pairs = list(zip(order[:-1], order[1:]))
 
-# --- Overlay data points ---
-sns.stripplot(
-    data=t5_per_droplet_DAPI,
-    x='Bins_vol',
-    y='signal intesity',
-    order=order,
-    jitter=True,
-    size=5,
-    color='black',
-    alpha=0.3,
-    ax=ax
-)
+# plt.figure(figsize=(16, 12), dpi=600)
 
-# --- Statistical annotations (neighboring only) ---
-annotator = Annotator(ax, pairs, data=t5_per_droplet_DAPI, x='Bins_vol', y='signal intesity', order=order)
-annotator.configure(
-    test='t-test_ind',        # or 'Mann-Whitney'
-    text_format='star',
-    pvalue_thresholds=[
-        (1, "NS"),
-        (0.05, "*"),
-        (0.01, "**"),
-        (0.001, "***"),
-        (0.0001, "****"),
-    ],
-    comparisons_correction='bonferroni',
-    line_offset_to_group=0.05,
-    line_height=0.02,
-    loc='inside',
-    verbose=0,
-    fontsize=18,
-)
-annotator.apply_and_annotate()
+# # --- 3. Base Boxplot ---
+# ax = sns.boxplot(
+#     data=t5_per_droplet_DAPI,
+#     x='Bins_vol',
+#     y='signal intesity',
+#     order=order,
+#     color='lightgray',
+#     width=0.6,
+#     linewidth=1.2,
+#     fliersize=0,
+#     boxprops=dict(edgecolor='black', linewidth=1.2),
+#     whiskerprops=dict(color='black', linewidth=1.2),
+#     capprops=dict(color='black', linewidth=1.2),
+#     medianprops=dict(color='red', linewidth=2)
+# )
 
-# --- Labels and formatting ---
-plt.xlabel(r'Volume (µm$^3$)', fontsize=18)
-plt.ylabel('Mean antibiotic intensity per droplet', fontsize=18)
-sns.despine()
-plt.grid(axis='y', linestyle='--', alpha=0.3)
-plt.tight_layout()
-plt.show()
+# # --- 4. Overlay Data Points ---
+# sns.stripplot(
+#     data=t5_per_droplet_DAPI,
+#     x='Bins_vol',
+#     y='signal intesity',
+#     order=order,
+#     jitter=True,
+#     size=10,
+#     color='black',
+#     alpha=0.3,
+#     ax=ax
+# )
+
+# # --- 5. Axis Formatting (Integers, No Decimals, 200 Jumps) ---
+# # X-Axis
+# labels = [r'$10^3 - 10^4$', r'$10^4 - 10^5$', r'$10^5 - 10^6$', r'$10^6 - 10^7$', r'$10^7 - 10^8$']
+# ax.set_xticklabels(labels, fontsize=30)
+
+# # Y-Axis Jumps and Integer Formatting
+# ytick_values = np.arange(0, 1001, 200)
+# ax.set_yticks(ytick_values)
+# ax.set_yticklabels([int(y) for y in ytick_values], fontsize=30)
+# minor_yticks = np.arange(100, 1000, 200)
+# ax.set_yticks(minor_yticks, minor=True)
+
+# ax.tick_params(axis='y', which='major', length=12, width=2)
+# ax.tick_params(axis='y', which='minor', length=6, width=2)
+# ax.set_ylim(0, 1000)
+
+# # --- 6. Statistical Annotations ---
+# annotator = Annotator(ax, pairs, data=t5_per_droplet_DAPI, x='Bins_vol', y='signal intesity', order=order)
+# annotator.configure(
+#     test='t-test_ind',
+#     text_format='star',
+#     pvalue_thresholds=[(1, "NS"), (0.05, "*"), (0.01, "**"), (0.001, "***"), (0.0001, "****")],
+#     comparisons_correction='bonferroni',
+#     line_offset_to_group=0.05,
+#     line_height=0.02,
+#     loc='inside',
+#     verbose=0,
+#     fontsize=24,
+# )
+# annotator.apply_and_annotate()
+
+# # --- 7. Labels and Styling ---
+# plt.xlabel(r'Volume (µm$^3$)', fontsize=36)
+# plt.ylabel('Mean antibiotic intensity per droplet', fontsize=36)
+
+# sns.despine()
+# plt.grid(axis='y', linestyle='--', alpha=0.3)
+# plt.tight_layout()
+
+# plt.show()
 
 # # --------------------------------------------------------------------------------------
 # # figure 3 GFP Intensity Vs DAPI Intensity per bacterium T=5
@@ -289,17 +315,19 @@ plt.show()
 plt.figure(figsize = (10,6))
 window = 1000
 GFP_sorted = merged.sort_values('Volume').reset_index(drop=True)
-GFP_sorted['signal_MA'] = GFP_sorted['signal intesity'].rolling(window=window, min_periods=1).mean()
+GFP_sorted['signal_MA'] = GFP_sorted['signal intesity'].rolling(window=window, min_periods=25).mean()
 mCherry_sorted = merged.sort_values('Volume').reset_index(drop=True)
-mCherry_sorted['bac_MA'] = mCherry_sorted['Mean_Top25_Intensity'].rolling(window=window, min_periods=1).mean()
-plt.plot(GFP_sorted['Volume'], GFP_sorted['signal_MA'], color='green', linewidth=1, label=f'GFP {window}-point MA')
-plt.plot(mCherry_sorted['Volume'], mCherry_sorted['bac_MA'], color='red', linewidth=1, label=f'mCherry {window}-point MA')
+mCherry_sorted['bac_MA'] = mCherry_sorted['Mean_Top25_Intensity'].rolling(window=window, min_periods=25).mean()
+plt.plot(GFP_sorted['Volume'], GFP_sorted['signal_MA'], color='green', linewidth=3, label=f'GFP {window}-point MA')
+plt.plot(mCherry_sorted['Volume'], mCherry_sorted['bac_MA'], color='red', linewidth=3, label=f'mCherry {window}-point MA')
 plt.xlabel(r'Volume (µm$^3$)', fontsize=18)
 plt.ylabel('Mean Intensity per bacterium',fontsize=18)
 plt.xscale('log')
 plt.ylim(0, 1000)
 # plt.yscale('log')
-plt.legend()
+plt.legend(fontsize=12)
+plt.tick_params(axis='both', labelsize=16)
+plt.grid(alpha=0.3)
 plt.show()
 # # --------------------------------------------------------------------------------------
 # relative intesity Vs Volume per droplet
@@ -307,18 +335,19 @@ plt.show()
 plt.figure(figsize = (10,6))
 window = 100
 GFP_sorted = t5_per_droplet_DAPI.sort_values('Volume').reset_index(drop=True)
-GFP_sorted['signal_MA'] = GFP_sorted['signal intesity'].rolling(window=window, min_periods=1).mean()
+GFP_sorted['signal_MA'] = GFP_sorted['signal intesity'].rolling(window=window, min_periods=25).mean()
 mCherry_sorted = t5_per_droplet_DAPI.sort_values('Volume').reset_index(drop=True)
-mCherry_sorted['bac_MA'] = mCherry_sorted['Mean_Top25_Intensity'].rolling(window=window, min_periods=1).mean()
-plt.plot(GFP_sorted['Volume'], GFP_sorted['signal_MA'], color='green', linewidth=1, label=f'GFP {window}-point MA')
-plt.plot(mCherry_sorted['Volume'], mCherry_sorted['bac_MA'], color='red', linewidth=1, label=f'mCherry {window}-point MA')
+mCherry_sorted['bac_MA'] = mCherry_sorted['Mean_Top25_Intensity'].rolling(window=window, min_periods=25).mean()
+plt.plot(GFP_sorted['Volume'], GFP_sorted['signal_MA'], color='green', linewidth=3, label=f'GFP {window}-point MA')
+plt.plot(mCherry_sorted['Volume'], mCherry_sorted['bac_MA'], color='red', linewidth=3, label=f'mCherry {window}-point MA')
 plt.xlabel(r'Volume (µm$^3$)', fontsize=18)
 plt.ylabel('Mean Intensity per droplet',fontsize=18)
 plt.xscale('log')
 plt.ylim(0, 1000)
-
+plt.grid(alpha=0.3)
 # plt.yscale('log')
-plt.legend()
+plt.legend(fontsize=12)
+plt.tick_params(axis='both', labelsize=16)
 plt.show()
 
 
